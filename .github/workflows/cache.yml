@@ -1,0 +1,37 @@
+name: Cache Dependencies Demo
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/cache.yml"
+
+jobs:
+  cache-job:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Create something to cache (fake "dependencies" folder)
+      - name: Prepare deps
+        run: |
+          mkdir -p .deps
+          echo "deps-created-$(date)" > .deps/info.txt
+
+      # Cache step (must be actions/cache@v4 or newer)
+      - name: Cache deps
+        id: cache_deps
+        uses: actions/cache@v4
+        with:
+          path: .deps
+          key: cache-c94d0a0
+
+      # REQUIRED step name + echo hit/miss
+      - name: prime-cache-c94d0a0
+        run: |
+          echo "cache-hit=${{ steps.cache_deps.outputs.cache-hit }}"
+          if [ "${{ steps.cache_deps.outputs.cache-hit }}" = "true" ]; then
+            echo "HIT"
+          else
+            echo "MISS"
+          fi
